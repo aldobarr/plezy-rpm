@@ -1,0 +1,99 @@
+name: Sync RPM mirror
+
+on:
+  schedule:
+    - cron: '37 3 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: rpm-mirror-publication
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    name: Mirror releases and build repository
+    runs-on: ubuntu-latest
+    container: fedora:44
+    permissions:
+      contents: write
+    outputs:
+      pages-created: ${{ steps.sync.outputs.pages-created }}
+
+    steps:
+      - name: Install synchronization dependencies
+        run: >-
+          dnf install --assumeyes
+          createrepo_c
+          curl
+          gh
+          git
+          gnupg2
+          jq
+          rpm-sign
+
+      - name: Check out the repository
+        uses: actions/checkout@v6
+
+      - name: Synchronize RPM releases
+        id: sync
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RPM_SIGNING_PRIVATE_KEY: ${{ secrets.RPM_SIGNING_PRIVATE_KEY }}
+          PAGES_OUTPUT_DIR: ${{ runner.temp }}/pages
+        shell: bash
+        run: |
+          if [[ "$GITHUB_EVENT_NAME" == 'workflow_dispatch' ]]; then
+            mode='backfill'
+          else
+            mode='scheduled'
+          fi
+
+          ./updaterepos.sh "$mode"
+
+          if [[ -d "$PAGES_OUTPUT_DIR" ]]; then
+            printf 'pages-created=true\n' >>"$GITHUB_OUTPUT"
+          else
+            printf 'pages-created=false\n' >>"$GITHUB_OUTPUT"
+          fi
+
+      - name: Upload GitHub Pages artifact
+        if: steps.sync.outputs.pages-created == 'true'
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: ${{ runner.temp }}/pages
+
+  deploy:
+    name: Deploy repository metadata
+    if: needs.sync.outputs.pages-created == 'true'
+    needs: sync
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Deploy GitHub Pages artifact
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+  keepalive:
+    name: Keep scheduled synchronization active
+    if: github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Check out the default branch
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+
+      - name: Keep scheduled workflows active after prolonged inactivity
+        run: ./scripts/keepalive.sh
