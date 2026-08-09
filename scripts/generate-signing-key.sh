@@ -8,7 +8,7 @@ if [[ $# -ne 1 ]]; then
 fi
 
 output_directory=$1
-public_key="$output_directory/RPM-GPG-KEY-plezy-rpm"
+public_key="$output_directory/RPM-GPG-KEY-plezy"
 private_key="$output_directory/RPM-SIGNING-PRIVATE-KEY.asc"
 revocation_certificate="$output_directory/RPM-SIGNING-REVOCATION.rev"
 keyring="$(mktemp -d)"

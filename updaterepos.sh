@@ -9,7 +9,7 @@ mode=${1:-}
 project_root="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 upstream_repository=${UPSTREAM_REPOSITORY:-edde746/plezy}
 distribution_repository=${DISTRIBUTION_REPOSITORY:-${GITHUB_REPOSITORY:-aldobarr/plezy-rpm}}
-public_key_file=${PUBLIC_KEY_FILE:-$project_root/RPM-GPG-KEY-plezy-rpm}
+public_key_file=${PUBLIC_KEY_FILE:-$project_root/RPM-GPG-KEY-plezy}
 release_asset_base_url=${RELEASE_ASSET_BASE_URL:-https://github.com/$distribution_repository/releases/download/}
 github_client=${GITHUB_CLIENT:-$project_root/scripts/github-client.sh}
 work_directory="$(mktemp -d)"
@@ -186,7 +186,7 @@ publish_repository() {
     "$package_directory" >/dev/null
 
   cp "$project_root/plezy.repo" "$prepared_pages/plezy.repo"
-  cp "$public_key_file" "$prepared_pages/RPM-GPG-KEY-plezy-rpm"
+  cp "$public_key_file" "$prepared_pages/RPM-GPG-KEY-plezy"
   : >"$prepared_pages/.nojekyll"
 
   gpg --homedir "$signing_keyring" \
