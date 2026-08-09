@@ -45,13 +45,7 @@ jobs:
           PAGES_OUTPUT_DIR: ${{ runner.temp }}/pages
         shell: bash
         run: |
-          if [[ "$GITHUB_EVENT_NAME" == 'workflow_dispatch' ]]; then
-            mode='backfill'
-          else
-            mode='scheduled'
-          fi
-
-          ./updaterepos.sh "$mode"
+          ./updaterepos.sh
 
           if [[ -d "$PAGES_OUTPUT_DIR" ]]; then
             printf 'pages-created=true\n' >>"$GITHUB_OUTPUT"

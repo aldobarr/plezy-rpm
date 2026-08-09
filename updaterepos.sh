@@ -5,7 +5,11 @@
 
 set -euo pipefail
 
-mode=${1:-}
+if [[ $# -ne 0 ]]; then
+  printf 'Usage: %s\n' "${0##*/}" >&2
+  exit 2
+fi
+
 project_root="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 upstream_repository=${UPSTREAM_REPOSITORY:-edde746/plezy}
 distribution_repository=${DISTRIBUTION_REPOSITORY:-${GITHUB_REPOSITORY:-aldobarr/plezy-rpm}}
@@ -21,14 +25,6 @@ cleanup() {
   rm -rf "$work_directory"
 }
 trap cleanup EXIT
-
-case "$mode" in
-  scheduled | backfill) ;;
-  *)
-    printf 'Usage: %s scheduled|backfill\n' "${0##*/}" >&2
-    exit 2
-    ;;
-esac
 
 release_is_eligible() {
   jq -e '
@@ -205,29 +201,11 @@ publish_repository() {
   cp -a "$prepared_pages/." "$output_directory/"
 }
 
-if [[ "$mode" == 'scheduled' ]]; then
-  release_count="$(
-    "$github_client" mirror-release-count "$distribution_repository"
-  )"
-  if [[ "$release_count" -eq 0 ]]; then
-    printf 'Scheduled Sync requires an initialized mirror. Run Backfill Sync manually first.\n' >&2
-    exit 1
-  fi
+latest_release="$(
+  "$github_client" latest-upstream-release "$upstream_repository"
+)"
+mirror_release "$latest_release"
 
-  latest_release="$(
-    "$github_client" latest-upstream-release "$upstream_repository"
-  )"
-  mirror_release "$latest_release"
-else
-  upstream_release_pages="$(
-    "$github_client" all-upstream-releases "$upstream_repository"
-  )"
-  mapfile -t upstream_releases < <(jq -c 'add | reverse[]' <<<"$upstream_release_pages")
-  for upstream_release in "${upstream_releases[@]}"; do
-    mirror_release "$upstream_release"
-  done
-fi
-
-if [[ "$mode" == 'backfill' || $created_release -eq 1 ]]; then
+if [[ $created_release -eq 1 ]]; then
   publish_repository
 fi

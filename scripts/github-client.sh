@@ -10,17 +10,9 @@ fi
 shift
 
 case "$operation" in
-  mirror-release-count)
-    repository=${1:?distribution repository is required}
-    gh api "repos/$repository/releases?per_page=1" | jq 'length'
-    ;;
   latest-upstream-release)
     repository=${1:?upstream repository is required}
     gh api "repos/$repository/releases/latest"
-    ;;
-  all-upstream-releases)
-    repository=${1:?upstream repository is required}
-    gh api --paginate --slurp "repos/$repository/releases?per_page=100"
     ;;
   mirror-release-exists)
     repository=${1:?distribution repository is required}
