@@ -1,5 +1,9 @@
 # Plezy RPM repository
 
+## Repository signing key
+
+**Fingerprint:** `9B26 8739 1070 7538 573F  3882 6D30 3557 9252 4EF8`
+
 ## Installation
 
 ### DNF v5
