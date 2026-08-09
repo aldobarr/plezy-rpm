@@ -1,4 +1,4 @@
-name: Sync RPM mirror
+name: Sync Release
 
 on:
   schedule:
@@ -9,7 +9,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: rpm-mirror-publication
+  group: rpm-publication
   cancel-in-progress: false
 
 jobs:
