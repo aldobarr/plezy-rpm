@@ -1,5 +1,7 @@
 # Plezy RPM repository
 
+An unofficial RPM repository for Plezy. This repository mirrors official Plezy releases from the [upstream Plezy repository](https://github.com/edde746/plezy). The RPMs from an official release are only ever signed by our repository, never modified.
+
 ## Repository signing key
 
 **Fingerprint:** `9B26 8739 1070 7538 573F  3882 6D30 3557 9252 4EF8`
