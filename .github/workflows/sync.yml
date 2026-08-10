@@ -75,19 +75,3 @@ jobs:
       - name: Deploy GitHub Pages artifact
         id: deployment
         uses: actions/deploy-pages@v4
-
-  keepalive:
-    name: Keep scheduled synchronization active
-    if: github.event_name == 'schedule'
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-
-    steps:
-      - name: Check out the default branch
-        uses: actions/checkout@v6
-        with:
-          fetch-depth: 1
-
-      - name: Keep scheduled workflows active after prolonged inactivity
-        run: ./scripts/keepalive.sh
