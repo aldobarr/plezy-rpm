@@ -45,6 +45,45 @@ case "$operation" in
       --pattern "$asset_name" \
       --dir "$destination"
     ;;
+  open-issue-number)
+    repository=${1:?distribution repository is required}
+    title=${2:?issue title is required}
+    gh issue list \
+      --repo "$repository" \
+      --state open \
+      --limit 100 \
+      --json number,title |
+      jq -r --arg title "$title" \
+        'map(select(.title == $title)) | first | .number // empty'
+    ;;
+  create-issue)
+    repository=${1:?distribution repository is required}
+    title=${2:?issue title is required}
+    body_file=${3:?issue body file is required}
+    gh issue create \
+      --repo "$repository" \
+      --title "$title" \
+      --body-file "$body_file" >/dev/null
+    ;;
+  comment-on-issue)
+    repository=${1:?distribution repository is required}
+    issue_number=${2:?issue number is required}
+    body_file=${3:?comment body file is required}
+    gh issue comment "$issue_number" \
+      --repo "$repository" \
+      --body-file "$body_file" >/dev/null
+    ;;
+  close-issue)
+    repository=${1:?distribution repository is required}
+    issue_number=${2:?issue number is required}
+    body_file=${3:?closing comment body file is required}
+    gh issue comment "$issue_number" \
+      --repo "$repository" \
+      --body-file "$body_file" >/dev/null
+    gh issue close "$issue_number" \
+      --repo "$repository" \
+      --reason completed >/dev/null
+    ;;
   *)
     printf 'Unsupported GitHub operation: %s\n' "$operation" >&2
     exit 2

@@ -75,3 +75,32 @@ jobs:
       - name: Deploy GitHub Pages artifact
         id: deployment
         uses: actions/deploy-pages@v4
+
+  report:
+    name: Report synchronization status
+    if: ${{ always() }}
+    needs:
+      - sync
+      - deploy
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v6
+
+      - name: Report synchronization failure
+        if: needs.sync.result == 'failure' || needs.deploy.result == 'failure'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: ./scripts/report-sync-status.sh failure
+
+      - name: Resolve synchronization failure
+        if: >-
+          needs.sync.result == 'success' &&
+          (needs.deploy.result == 'success' || needs.deploy.result == 'skipped')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: ./scripts/report-sync-status.sh success
