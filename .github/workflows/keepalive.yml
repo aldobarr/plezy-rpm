@@ -12,12 +12,21 @@ jobs:
     name: Keep scheduled workflows active
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: read
 
     steps:
+      - name: Create keepalive app token
+        id: keepalive-app
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ vars.KEEPALIVE_APP_CLIENT_ID }}
+          private-key: ${{ secrets.KEEPALIVE_APP_PRIVATE_KEY }}
+          permission-contents: write
+
       - name: Check out the default branch
         uses: actions/checkout@v6
         with:
+          token: ${{ steps.keepalive-app.outputs.token }}
           fetch-depth: 1
 
       - name: Keep scheduled workflows active after prolonged inactivity
